@@ -5,34 +5,40 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from time import sleep
+from lxml import etree
 import pandas as pd
 import os
+import re
+import requests
+import shutil
 
 
 def main():
-
-    data = Patent('D203134').get_data()
-    print(data)
-    print(data.shape[0])
-    # print(data.iloc[0].values[0])
-    # for row in data:
-    #     print(row)
-    #     print(row.values[0])
+    Patent('I605776')
 
 
 class Patent:
     chrome_options = Options()
     chrome_options.add_argument("--headless")
+    base_url = 'https://twpat7.tipo.gov.tw'
 
     def __init__(self, number):
         self.number = number
-        self.url = f'https://twpat7.tipo.gov.tw/tipotwoc/tipotwkm?!!FR_{number}'
-        self.__html = None
+        self.url = f'{self.base_url}/tipotwoc/tipotwkm?!!FR_{number}'
+        self.__old_version_html = None
+        self.__new_version_html = None
         self.__driver = webdriver.Chrome(
             executable_path=os.getcwd() + '/chromedriver',
             chrome_options=self.chrome_options
         )
-        self.__get_html()
+
+        try:
+            self.__get_old_version_html()
+            sleep(3)
+            self.__get_new_version_html()
+        finally:
+            self.__driver.close()
 
     def __wait(self, locator):
         try:
@@ -42,7 +48,19 @@ class Patent:
         except TimeoutException:
             print('exception')
 
-    def __get_html(self):
+    def __get_old_version_html(self):
+        self.__driver.get(self.url)
+        self.__wait((By.CSS_SELECTOR, 'img[src="/tipotwo/img/pic_taball0.gif"]'))
+        self.__driver.find_element_by_css_selector('img[src="/tipotwo/img/pic_taball0.gif"]').click()
+
+        self.__old_version_html = self.__driver.page_source
+
+        # with open('page.html', 'w') as f:
+        #     f.write(self.__driver.page_source)
+        # with open('page.html', 'r') as f:
+        #     self.__old_version_html = f.read()
+
+    def __get_new_version_html(self):
         self.__driver.get("https://gpss.tipo.gov.tw/")
 
         self.__wait_search_bar_shown()
@@ -50,9 +68,36 @@ class Patent:
         self.__wait_search_result_shown()
         self.__click_patent_link()
 
-        self.__html = self.__driver.page_source
+        self.__new_version_html = self.__driver.page_source
 
-        self.__driver.close()
+        # with open('new_version_page.html', 'w') as f:
+        #     f.write(self.__driver.page_source)
+
+        # with open('new_version_page.html', 'r') as f:
+        #     self.__new_version_html = f.read()
+
+    def __get_all_image_download_url(self):
+        soup = BeautifulSoup(self.__old_version_html, 'html.parser')
+
+        tags = soup.find_all('img', {'src': re.compile(r'/tipotwousr/.*/.*\?')})
+
+        return [self.base_url + tag['src'] for tag in tags]
+
+    def download_all_image(self):
+        folder_path = os.path.join(os.getcwd(), 'image')
+
+        if os.path.isdir(folder_path):
+            shutil.rmtree(folder_path)
+
+        os.makedirs(folder_path, exist_ok=True)
+
+        for download_url in self.__get_all_image_download_url():
+            file_name = os.path.basename(download_url).split("?")[0]
+
+            resp = requests.get(download_url, stream=True)
+            resp.raw.decode_content = True
+            local_file = open(folder_path + '/' + file_name, 'wb')
+            shutil.copyfileobj(resp.raw, local_file)
 
     def __search_patent(self):
         input_field = self.__driver.find_element_by_name('_21_1_T')
@@ -67,14 +112,12 @@ class Patent:
         self.__wait((By.CLASS_NAME, "sumtd2_PN"))
 
     def __click_patent_link(self):
-        patent = self.__driver.find_element_by_link_text(f'TW{self.number}')
+        patent = self.__driver.find_element_by_xpath("//td[@class='sumtd2_PN']//child::a")
         patent.click()
 
-    def __get_soup(self):
-        return BeautifulSoup(self.__html, 'html.parser')
-
     def get_data(self):
-        table = self.__get_soup().find('table', {'class': "table_2nd"})
+        soup = BeautifulSoup(self.__new_version_html, 'html.parser')
+        table = soup.find('table', {'class': "table_2nd"})
         table_rows = table.find_all('tr')
 
         res = []
@@ -86,11 +129,41 @@ class Patent:
 
         return pd.DataFrame(res)
 
+    def get_case_status(self):
+        selector = etree.HTML(self.__old_version_html)
+        result = selector.xpath("//td[text()='案件狀態']//following-sibling::td//child::table")
+        table = etree.tostring(result[0])
+        df_table = pd.read_html(table)[0]
+        return pd.DataFrame(df_table)
+
+    def get_right_change(self):
+        selector = etree.HTML(self.__old_version_html)
+        result = selector.xpath("//td[text()='權利異動']//following-sibling::td//child::table")
+        table = etree.tostring(result[0])
+        df_table = pd.read_html(table)[0]
+        return pd.DataFrame(df_table)
+
+    def get_patent_detail(self):
+        selector = etree.HTML(self.__old_version_html)
+        result = selector.xpath("//td[text()='詳細說明']//following-sibling::td")
+        xml_content = etree.tostring(result[0], encoding="utf-8").decode('utf-8')
+        detail_text = BeautifulSoup(xml_content, 'html.parser').find('td').text
+        return detail_text
+
+    def get_patent_range_detail(self):
+        selector = etree.HTML(self.__old_version_html)
+        result = selector.xpath("//td[text()='專利範圍']//following-sibling::td")
+        xml_content = etree.tostring(result[0], encoding="utf-8").decode('utf-8')
+        range_text = BeautifulSoup(xml_content, 'html.parser').find('td').text
+        return range_text
+
     def get_name(self):
-        return self.__get_soup().find('td', {'class': 'TI'}).text
+        soup = BeautifulSoup(self.__new_version_html, 'html.parser')
+        return soup.find('td', {'class': 'TI'}).text
 
     def get_summary(self):
-        return self.__get_soup().find('div', {'class': 'divsum_AB'}).text
+        soup = BeautifulSoup(self.__new_version_html, 'html.parser')
+        return soup.find('div', {'class': 'divsum_AB'}).text
 
 
 if __name__ == "__main__":
