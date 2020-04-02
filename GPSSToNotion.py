@@ -71,25 +71,30 @@ class NotionPatent:
 
     def create_patent_detail(self):
         toggle = None
-        patent_detail_list = self.patent.get_patent_detail().split("\n")
+        patent_detail_list = self.patent.get_patent_detail()
 
-        detail = [line.strip(' \t\n\r') for line in patent_detail_list if line != '']
+        if patent_detail_list:
+            detail = [line.strip(' \t\n\r') for line in patent_detail_list.split("\n") if line != '']
 
-        for line in detail:
-            if "【" in line:
-                toggle = self.page.children.add_new(ToggleBlock, title=line)
-            else:
-                toggle.children.add_new(ToggleBlock, title=line)
+            for line in detail:
+                if "【" in line:
+                    toggle = self.page.children.add_new(ToggleBlock, title=line)
+                else:
+                    toggle.children.add_new(ToggleBlock, title=line)
+        else:
+            print("No patent deail")
 
     def create_patent_range(self):
-        patent_range_list = self.patent.get_patent_range_detail().split("\n")
+        patent_range_list = self.patent.get_patent_range_detail()
 
-        range_text = [line.strip(' \t\n\r') for line in patent_range_list if line]
+        if patent_range_list:
+            range_text = [line.strip(' \t\n\r') for line in patent_range_list.split("\n") if line]
+            patent_range = self.page.children.add_new(ToggleBlock, title="專利範圍")
 
-        patent_range = self.page.children.add_new(ToggleBlock, title="專利範圍")
-
-        for line in range_text:
-            patent_range.children.add_new(ToggleBlock, title=line)
+            for line in range_text:
+                patent_range.children.add_new(ToggleBlock, title=line)
+        else:
+            print("No patent range")
 
     def create_patent_info(self):
         cvb = self.page.children.add_new(CollectionViewBlock)

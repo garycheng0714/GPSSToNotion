@@ -146,16 +146,20 @@ class Patent:
     def get_patent_detail(self):
         selector = etree.HTML(self.__old_version_html)
         result = selector.xpath("//td[text()='詳細說明']//following-sibling::td")
-        xml_content = etree.tostring(result[0], encoding="utf-8").decode('utf-8')
-        detail_text = BeautifulSoup(xml_content, 'html.parser').find('td').text
-        return detail_text
+        if result:
+            xml_content = etree.tostring(result[0], encoding="utf-8").decode('utf-8')
+            detail_text = BeautifulSoup(xml_content, 'html.parser').find('td').text
+            return detail_text
+        return None
 
     def get_patent_range_detail(self):
         selector = etree.HTML(self.__old_version_html)
         result = selector.xpath("//td[text()='專利範圍']//following-sibling::td")
-        xml_content = etree.tostring(result[0], encoding="utf-8").decode('utf-8')
-        range_text = BeautifulSoup(xml_content, 'html.parser').find('td').text
-        return range_text
+        if result:
+            xml_content = etree.tostring(result[0], encoding="utf-8").decode('utf-8')
+            range_text = BeautifulSoup(xml_content, 'html.parser').find('td').text
+            return range_text
+        return None
 
     def get_name(self):
         soup = BeautifulSoup(self.__new_version_html, 'html.parser')
