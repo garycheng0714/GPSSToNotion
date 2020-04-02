@@ -1,7 +1,9 @@
 from notion.client import NotionClient
 from global_patent import Patent
-from notion.block import CollectionViewBlock, HeaderBlock, CalloutBlock, ToggleBlock
+from notion.block import CollectionViewBlock, HeaderBlock, CalloutBlock, ToggleBlock, ImageBlock
 from argparse import ArgumentParser
+from os import listdir
+import os
 
 parser = ArgumentParser()
 parser.add_argument("-n", "--number", help="The number of patent")
@@ -10,12 +12,13 @@ args = parser.parse_args()
 
 def main():
     notion_patent = NotionPatent(args.number)
-    # notion_patent.create_summary_block()
-    # notion_patent.create_patent_info()
-    # notion_patent.create_patent_detail()
-    # notion_patent.create_patent_range()
-    # notion_patent.create_case_status()
-    # notion_patent.create_right_change()
+    notion_patent.create_summary_block()
+    notion_patent.create_patent_info()
+    notion_patent.create_patent_detail()
+    notion_patent.create_patent_range()
+    notion_patent.create_case_status()
+    notion_patent.create_right_change()
+    notion_patent.create_image()
 
 
 """
@@ -49,6 +52,16 @@ class NotionPatent:
         self.page.tag = 'A'
         self.page.name = self.patent.get_name()
         self.page.summary = self.patent.get_summary()
+
+    def create_image(self):
+        self.patent.download_all_image()
+        folder_path = os.getcwd() + '/image'
+        image_file_list = listdir(folder_path)
+        image_file_list.sort()
+
+        for image_file in image_file_list:
+            image_block = self.page.children.add_new(ImageBlock)
+            image_block.upload_file(folder_path + '/' + image_file)
 
     def create_summary_block(self):
         # How to use string literal to create emoji
