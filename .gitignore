@@ -1,0 +1,6 @@
+*.png
+*.html
+*.jpg
+*.xlsx
+.idea/
+__pycache__/
