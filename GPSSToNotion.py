@@ -3,22 +3,34 @@ from global_patent import Patent
 from notion.block import CollectionViewBlock, HeaderBlock, CalloutBlock, ToggleBlock, ImageBlock
 from argparse import ArgumentParser
 from os import listdir
+import pandas as pd
 import os
 
 parser = ArgumentParser()
 parser.add_argument("-n", "--number", help="The number of patent")
+parser.add_argument("-f", "--file", help="Get all images of the patent in the excel file")
 args = parser.parse_args()
 
 
 def main():
-    notion_patent = NotionPatent(args.number)
-    notion_patent.create_summary_block()
-    notion_patent.create_patent_info()
-    notion_patent.create_patent_detail()
-    notion_patent.create_patent_range()
-    notion_patent.create_case_status()
-    notion_patent.create_right_change()
-    notion_patent.create_image()
+    patent_numbers = get_patent_numbers_from_excel() if args.file else [args.number]
+
+    for number in patent_numbers:
+        print(f'Start to create {number}')
+        notion_patent = NotionPatent(number)
+        notion_patent.create_summary_block()
+        notion_patent.create_patent_info()
+        notion_patent.create_patent_detail()
+        notion_patent.create_patent_range()
+        notion_patent.create_case_status()
+        notion_patent.create_right_change()
+        notion_patent.create_image()
+        print(f'Finish {number}')
+
+
+def get_patent_numbers_from_excel():
+    df = pd.read_excel(args.file)
+    return df.iloc[:, 0]
 
 
 """
@@ -82,7 +94,7 @@ class NotionPatent:
                 else:
                     toggle.children.add_new(ToggleBlock, title=line)
         else:
-            print("No patent deail")
+            print("No patent detail")
 
     def create_patent_range(self):
         patent_range_list = self.patent.get_patent_range_detail()
