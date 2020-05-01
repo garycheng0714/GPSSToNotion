@@ -1,5 +1,6 @@
 from notion.client import NotionClient
 from global_patent import Patent
+from table_schema import RIGHTS_CHANGES_SCHEMA, CASE_STATUS_SCHEMA, PATENT_INFO_SCHEMA
 from notion.block import CollectionViewBlock, HeaderBlock, CalloutBlock, ToggleBlock, ImageBlock
 from argparse import ArgumentParser
 from os import listdir
@@ -112,7 +113,7 @@ class NotionPatent:
         cvb = self.page.children.add_new(CollectionViewBlock)
 
         cvb.collection = self.client.get_collection(
-            self.client.create_record("collection", parent=cvb, schema=self.__get_info_schema())
+            self.client.create_record("collection", parent=cvb, schema=PATENT_INFO_SCHEMA)
         )
 
         cvb.title = '書目資料'
@@ -125,13 +126,6 @@ class NotionPatent:
             info_row.name = patent_info_df.iloc[i].values[0]
             info_row.property = patent_info_df.iloc[i].values[1]
 
-    @staticmethod
-    def __get_info_schema():
-        return {
-            "dV$q": {"name": "Property", "type": "text"},
-            "title": {"name": "Name", "type": "title"}
-        }
-
     def create_case_status(self):
         patent_case_status_df = self.patent.get_case_status()
 
@@ -139,7 +133,7 @@ class NotionPatent:
             cvb = self.page.children.add_new(CollectionViewBlock)
 
             cvb.collection = self.client.get_collection(
-                self.client.create_record("collection", parent=cvb, schema=self.__get_case_status_schema())
+                self.client.create_record("collection", parent=cvb, schema=CASE_STATUS_SCHEMA)
             )
 
             cvb.title = '案件狀態'
@@ -166,22 +160,6 @@ class NotionPatent:
         value = str(df.iloc[index].values[column])
         return value if value != "nan" else ""
 
-    @staticmethod
-    def __get_case_status_schema():
-        return {
-            "title": {"name": "專利申請案號", "type": "text"},
-            "1": {"name": "a狀態異動日期", "type": "text"},
-            "2": {"name": "b案件申請日期", "type": "text"},
-            "3": {"name": "c實體審查申請日", "type": "text"},
-            "4": {"name": "d相關申請案號", "type": "text"},
-            "5": {"name": "e公開號", "type": "text"},
-            "6": {"name": "f公告號", "type": "text"},
-            "7": {"name": "g證書號", "type": "text"},
-            "8": {"name": "h專利類別", "type": "text"},
-            "9": {"name": "i狀態異動資料", "type": "text"},
-            "10": {"name": "j申請案狀態異動資料", "type": "text"}
-        }
-
     def create_right_change(self):
         patent_right_change_df = self.patent.get_right_change()
 
@@ -189,7 +167,7 @@ class NotionPatent:
             cvb = self.page.children.add_new(CollectionViewBlock)
 
             cvb.collection = self.client.get_collection(
-                self.client.create_record("collection", parent=cvb, schema=self.__get_right_change_schema())
+                self.client.create_record("collection", parent=cvb, schema=RIGHTS_CHANGES_SCHEMA)
             )
 
             cvb.title = '權利異動'
@@ -213,25 +191,6 @@ class NotionPatent:
                 status_row.m年費有效年次 = self.get_value(patent_right_change_df, i, 13)
         else:
             print("No rights changed")
-
-    @staticmethod
-    def __get_right_change_schema():
-        return {
-            "title": {"name": "專利申請案號", "type": "text"},
-            "1": {"name": "a授權註記", "type": "text"},
-            "2": {"name": "b質權註記", "type": "text"},
-            "3": {"name": "c讓與註記", "type": "text"},
-            "4": {"name": "d繼承註記", "type": "text"},
-            "5": {"name": "e信託註記", "type": "text"},
-            "6": {"name": "f異議註記", "type": "text"},
-            "7": {"name": "g舉發註記", "type": "text"},
-            "8": {"name": "h消滅日期", "type": "text"},
-            "9": {"name": "i撤銷日期", "type": "text"},
-            "10": {"name": "j專利權始日", "type": "text"},
-            "11": {"name": "k專利權止日", "type": "text"},
-            "12": {"name": "l年費有效日期", "type": "text"},
-            "13": {"name": "m年費有效年次", "type": "text"}
-        }
 
 
 if __name__ == '__main__':
