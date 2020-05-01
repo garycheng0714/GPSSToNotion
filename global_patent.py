@@ -132,16 +132,20 @@ class Patent:
     def get_case_status(self):
         selector = etree.HTML(self.__old_version_html)
         result = selector.xpath("//td[text()='案件狀態']//following-sibling::td//child::table")
-        table = etree.tostring(result[0])
-        df_table = pd.read_html(table)[0]
-        return pd.DataFrame(df_table)
+        if result:
+            table = etree.tostring(result[0])
+            df_table = pd.read_html(table)[0]
+            return pd.DataFrame(df_table)
+        return None
 
     def get_right_change(self):
         selector = etree.HTML(self.__old_version_html)
         result = selector.xpath("//td[text()='權利異動']//following-sibling::td//child::table")
-        table = etree.tostring(result[0])
-        df_table = pd.read_html(table)[0]
-        return pd.DataFrame(df_table)
+        if result:
+            table = etree.tostring(result[0])
+            df_table = pd.read_html(table)[0]
+            return pd.DataFrame(df_table)
+        return None
 
     def get_patent_detail(self):
         selector = etree.HTML(self.__old_version_html)
