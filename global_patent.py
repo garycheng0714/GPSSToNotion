@@ -26,7 +26,6 @@ class Patent:
     def __init__(self, number):
         self.number = number
         self.url = f'https://gpss4.tipo.gov.tw/gpsskmc/gpssbkm?!!FRURL{number}'
-        self.__old_version_html = None
         self.__new_version_html = None
         self.__driver = webdriver.Chrome(
             executable_path=os.getcwd() + '/chromedriver',
@@ -34,8 +33,6 @@ class Patent:
         )
 
         try:
-            self.__get_old_version_html()
-            sleep(3)
             self.__get_new_version_html()
         finally:
             self.__driver.close()
@@ -47,18 +44,6 @@ class Patent:
             )
         except TimeoutException:
             print('exception')
-
-    def __get_old_version_html(self):
-        self.__driver.get(self.url)
-        self.__wait((By.CSS_SELECTOR, 'img[src="/tipotwo/img/pic_taball0.gif"]'))
-        self.__driver.find_element_by_css_selector('img[src="/tipotwo/img/pic_taball0.gif"]').click()
-
-        self.__old_version_html = self.__driver.page_source
-
-        # with open('page.html', 'w') as f:
-        #     f.write(self.__driver.page_source)
-        # with open('page.html', 'r') as f:
-        #     self.__old_version_html = f.read()
 
     def __get_new_version_html(self):
         self.__driver.get(self.url)
@@ -128,24 +113,6 @@ class Patent:
             res.append(row)
 
         return pd.DataFrame(res)
-
-    def get_case_status(self):
-        selector = etree.HTML(self.__old_version_html)
-        result = selector.xpath("//td[text()='案件狀態']//following-sibling::td//child::table")
-        if result:
-            table = etree.tostring(result[0])
-            df_table = pd.read_html(table)[0]
-            return pd.DataFrame(df_table)
-        return None
-
-    def get_right_change(self):
-        selector = etree.HTML(self.__old_version_html)
-        result = selector.xpath("//td[text()='權利異動']//following-sibling::td//child::table")
-        if result:
-            table = etree.tostring(result[0])
-            df_table = pd.read_html(table)[0]
-            return pd.DataFrame(df_table)
-        return None
 
     def get_patent_detail_text(self):
         selector = etree.HTML(self.__new_version_html)

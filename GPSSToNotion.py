@@ -1,6 +1,6 @@
 from notion.client import NotionClient
 from global_patent import Patent
-from table_schema import RIGHTS_CHANGES_SCHEMA, CASE_STATUS_SCHEMA, PATENT_INFO_SCHEMA
+from table_schema import PATENT_INFO_SCHEMA
 from notion.block import CollectionViewBlock, HeaderBlock, CalloutBlock, ToggleBlock, ImageBlock, TextBlock
 from argparse import ArgumentParser
 from os import listdir
@@ -23,8 +23,6 @@ def main():
         notion_patent.create_patent_info()
         notion_patent.create_patent_detail()
         notion_patent.create_patent_range()
-        notion_patent.create_case_status()
-        notion_patent.create_right_change()
         notion_patent.create_image()
         print(f'Finish {number}')
 
@@ -116,72 +114,6 @@ class NotionPatent:
             info_row = cvb.collection.add_row()
             info_row.name = patent_info_df.iloc[i].values[0]
             info_row.property = patent_info_df.iloc[i].values[1]
-
-    def create_case_status(self):
-        patent_case_status_df = self.patent.get_case_status()
-
-        if patent_case_status_df is not None:
-            cvb = self.page.children.add_new(CollectionViewBlock)
-
-            cvb.collection = self.client.get_collection(
-                self.client.create_record("collection", parent=cvb, schema=CASE_STATUS_SCHEMA)
-            )
-
-            cvb.title = '案件狀態'
-            cvb.views.add_new(view_type="table")
-
-            for i in range(patent_case_status_df.shape[0]):
-                status_row = cvb.collection.add_row()
-                status_row.專利申請案號 = self.get_value(patent_case_status_df, i, 0)
-                status_row.a狀態異動日期 = self.get_value(patent_case_status_df, i, 1)
-                status_row.b案件申請日期 = self.get_value(patent_case_status_df, i, 2)
-                status_row.c實體審查申請日 = self.get_value(patent_case_status_df, i, 3)
-                status_row.d相關申請案號 = self.get_value(patent_case_status_df, i, 4)
-                status_row.e公開號 = self.get_value(patent_case_status_df, i, 5)
-                status_row.f公告號 = self.get_value(patent_case_status_df, i, 6)
-                status_row.g證書號 = self.get_value(patent_case_status_df, i, 7)
-                status_row.h專利類別 = self.get_value(patent_case_status_df, i, 8)
-                status_row.i狀態異動資料 = self.get_value(patent_case_status_df, i, 9)
-                status_row.j申請案狀態異動資料 = self.get_value(patent_case_status_df, i, 10)
-        else:
-            print("No case status")
-
-    @staticmethod
-    def get_value(df, index, column):
-        value = str(df.iloc[index].values[column])
-        return value if value != "nan" else ""
-
-    def create_right_change(self):
-        patent_right_change_df = self.patent.get_right_change()
-
-        if patent_right_change_df is not None:
-            cvb = self.page.children.add_new(CollectionViewBlock)
-
-            cvb.collection = self.client.get_collection(
-                self.client.create_record("collection", parent=cvb, schema=RIGHTS_CHANGES_SCHEMA)
-            )
-
-            cvb.title = '權利異動'
-            cvb.views.add_new(view_type="table")
-
-            for i in range(patent_right_change_df.shape[0]):
-                status_row = cvb.collection.add_row()
-                status_row.專利申請案號 = self.get_value(patent_right_change_df, i, 0)
-                status_row.a授權註記 = self.get_value(patent_right_change_df, i, 1)
-                status_row.b質權註記 = self.get_value(patent_right_change_df, i, 2)
-                status_row.c讓與註記 = self.get_value(patent_right_change_df, i, 3)
-                status_row.d繼承註記 = self.get_value(patent_right_change_df, i, 4)
-                status_row.e信託註記 = self.get_value(patent_right_change_df, i, 5)
-                status_row.f異議註記 = self.get_value(patent_right_change_df, i, 6)
-                status_row.g舉發註記 = self.get_value(patent_right_change_df, i, 7)
-                status_row.h消滅日期 = self.get_value(patent_right_change_df, i, 8)
-                status_row.i撤銷日期 = self.get_value(patent_right_change_df, i, 9)
-                status_row.j專利權始日 = self.get_value(patent_right_change_df, i, 10)
-                status_row.k專利權止日 = self.get_value(patent_right_change_df, i, 11)
-                status_row.l年費有效日期 = self.get_value(patent_right_change_df, i, 12)
-                status_row.m年費有效年次 = self.get_value(patent_right_change_df, i, 13)
-        else:
-            print("No rights changed")
 
 
 if __name__ == '__main__':
