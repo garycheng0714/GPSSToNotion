@@ -21,7 +21,7 @@ def main():
 class Patent:
     chrome_options = Options()
     chrome_options.add_argument("--headless")
-    base_url = 'https://twpat7.tipo.gov.tw'
+    base_url = 'https://gpss4.tipo.gov.tw'
 
     def __init__(self, number):
         self.number = number
@@ -77,9 +77,9 @@ class Patent:
         #     self.__new_version_html = f.read()
 
     def __get_all_image_download_url(self):
-        soup = BeautifulSoup(self.__old_version_html, 'html.parser')
+        soup = BeautifulSoup(self.__new_version_html, 'html.parser')
 
-        tags = soup.find_all('img', {'src': re.compile(r'/tipotwousr/.*/.*\?')})
+        tags = soup.find_all('img', {'src': re.compile(r'/gpssbkmusr/.*/.*\?')})
 
         return [self.base_url + tag['src'] for tag in tags]
 
