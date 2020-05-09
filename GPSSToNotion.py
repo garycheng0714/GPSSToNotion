@@ -1,7 +1,7 @@
 from notion.client import NotionClient
 from global_patent import Patent
 from table_schema import RIGHTS_CHANGES_SCHEMA, CASE_STATUS_SCHEMA, PATENT_INFO_SCHEMA
-from notion.block import CollectionViewBlock, HeaderBlock, CalloutBlock, ToggleBlock, ImageBlock
+from notion.block import CollectionViewBlock, HeaderBlock, CalloutBlock, ToggleBlock, ImageBlock, TextBlock
 from argparse import ArgumentParser
 from os import listdir
 import pandas as pd
@@ -98,14 +98,11 @@ class NotionPatent:
             print("No patent detail")
 
     def create_patent_range(self):
-        patent_range_list = self.patent.get_patent_range_detail()
+        patent_range_text = self.patent.get_patent_range_text()
 
-        if patent_range_list:
-            range_text = [line.strip(' \t\n\r') for line in patent_range_list.split("\n") if line]
+        if patent_range_text:
             patent_range = self.page.children.add_new(ToggleBlock, title="專利範圍")
-
-            for line in range_text:
-                patent_range.children.add_new(ToggleBlock, title=line)
+            patent_range.children.add_new(TextBlock, title=patent_range_text)
         else:
             print("No patent range")
 

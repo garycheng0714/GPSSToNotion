@@ -15,7 +15,7 @@ import shutil
 
 
 def main():
-    Patent('I605776')
+    Patent('US20200120829A1')
 
 
 class Patent:
@@ -25,7 +25,7 @@ class Patent:
 
     def __init__(self, number):
         self.number = number
-        self.url = f'{self.base_url}/tipotwoc/tipotwkm?!!FR_{number}'
+        self.url = f'https://gpss4.tipo.gov.tw/gpsskmc/gpssbkm?!!FRURL{number}'
         self.__old_version_html = None
         self.__new_version_html = None
         self.__driver = webdriver.Chrome(
@@ -61,12 +61,12 @@ class Patent:
         #     self.__old_version_html = f.read()
 
     def __get_new_version_html(self):
-        self.__driver.get("https://gpss.tipo.gov.tw/")
+        self.__driver.get(self.url)
 
-        self.__wait_search_bar_shown()
-        self.__search_patent()
-        self.__wait_search_result_shown()
-        self.__click_patent_link()
+        # self.__wait_search_bar_shown()
+        # self.__search_patent()
+        # self.__wait_search_result_shown()
+        # self.__click_patent_link()
 
         self.__new_version_html = self.__driver.page_source
 
@@ -156,13 +156,22 @@ class Patent:
             return detail_text
         return None
 
-    def get_patent_range_detail(self):
-        selector = etree.HTML(self.__old_version_html)
-        result = selector.xpath("//td[text()='專利範圍']//following-sibling::td")
+    def get_patent_range_text(self):
+        selector = etree.HTML(self.__new_version_html)
+        result = selector.xpath(
+            """
+            //h3[contains(text(), '專利範圍')]
+            //parent::div[@class='panel-heading']
+            //following-sibling::div[@class='panel-body']
+            """
+        )
         if result:
             xml_content = etree.tostring(result[0], encoding="utf-8").decode('utf-8')
-            range_text = BeautifulSoup(xml_content, 'html.parser').find('td').text
-            return range_text
+            patent_range_html = BeautifulSoup(xml_content, 'html.parser').find('div', {'class': 'panel-body'})
+            text = str(patent_range_html).replace('<br/>', '\n')
+            text = re.sub(r'</div>', '', text)
+            text = re.sub(r'<div .*>', '', text)
+            return text
         return None
 
     def get_name(self):
