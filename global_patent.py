@@ -76,13 +76,16 @@ class Patent:
 
         os.makedirs(folder_path, exist_ok=True)
 
-        for download_url in self.__get_all_image_download_url():
-            file_name = os.path.basename(download_url).split("?")[0]
+        image_download_urls = self.__get_all_image_download_url()
 
-            resp = requests.get(download_url, stream=True)
-            resp.raw.decode_content = True
-            local_file = open(folder_path + '/' + file_name, 'wb')
-            shutil.copyfileobj(resp.raw, local_file)
+        if len(image_download_urls) > 0:
+            for download_url in image_download_urls:
+                file_name = os.path.basename(download_url).split("?")[0]
+
+                resp = requests.get(download_url, stream=True)
+                resp.raw.decode_content = True
+                local_file = open(folder_path + '/' + file_name, 'wb')
+                shutil.copyfileobj(resp.raw, local_file)
 
     def __search_patent(self):
         input_field = self.__driver.find_element_by_name('_21_1_T')

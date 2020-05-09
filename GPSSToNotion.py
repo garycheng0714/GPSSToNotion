@@ -21,8 +21,8 @@ def main():
         notion_patent = NotionPatent(number)
         notion_patent.create_summary_block()
         notion_patent.create_patent_info()
-        notion_patent.create_patent_detail()
         notion_patent.create_patent_range()
+        notion_patent.create_patent_detail()
         notion_patent.create_image()
         print(f'Finish {number}')
 
@@ -69,6 +69,9 @@ class NotionPatent:
         folder_path = os.getcwd() + '/image'
         image_file_list = listdir(folder_path)
         image_file_list.sort()
+
+        if len(image_file_list) == 0:
+            print('No patent image')
 
         for image_file in image_file_list:
             image_block = self.page.children.add_new(ImageBlock)
