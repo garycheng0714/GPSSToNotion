@@ -64,7 +64,7 @@ class Patent:
     def __get_all_image_download_url(self):
         soup = BeautifulSoup(self.__new_version_html, 'html.parser')
 
-        tags = soup.find_all('img', {'src': re.compile(r'/gpssbkmusr/.*/.*\?')})
+        tags = soup.find_all('img', {'src': re.compile(r'/gpssbkmusr/.*/.*')})
 
         return [self.base_url + tag['src'] for tag in tags]
 
