@@ -147,31 +147,37 @@ class Patent:
             return pd.DataFrame(df_table)
         return None
 
-    def get_patent_detail(self):
-        selector = etree.HTML(self.__old_version_html)
-        result = selector.xpath("//td[text()='詳細說明']//following-sibling::td")
+    def get_patent_detail_text(self):
+        selector = etree.HTML(self.__new_version_html)
+        result = selector.xpath(self.__get_section_xpath('詳細說明'))
         if result:
             xml_content = etree.tostring(result[0], encoding="utf-8").decode('utf-8')
-            detail_text = BeautifulSoup(xml_content, 'html.parser').find('td').text
-            return detail_text
+            detail_content_html = BeautifulSoup(xml_content, 'html.parser').find('div', {'class': 'panel-body'})
+            return self.__remove_section_html_tag(detail_content_html)
         return None
+
+    @staticmethod
+    def __get_section_xpath(section_name):
+        return f"""
+                //h3[contains(text(), '{section_name}')]
+                //parent::div[@class='panel-heading']
+                //following-sibling::div[@class='panel-body']
+               """
+
+    @staticmethod
+    def __remove_section_html_tag(html):
+        text = str(html).replace('<br/>', '\n')
+        text = re.sub(r'</div>', '', text)
+        text = re.sub(r'<div .*>', '', text)
+        return text
 
     def get_patent_range_text(self):
         selector = etree.HTML(self.__new_version_html)
-        result = selector.xpath(
-            """
-            //h3[contains(text(), '專利範圍')]
-            //parent::div[@class='panel-heading']
-            //following-sibling::div[@class='panel-body']
-            """
-        )
+        result = selector.xpath(self.__get_section_xpath('專利範圍'))
         if result:
             xml_content = etree.tostring(result[0], encoding="utf-8").decode('utf-8')
             patent_range_html = BeautifulSoup(xml_content, 'html.parser').find('div', {'class': 'panel-body'})
-            text = str(patent_range_html).replace('<br/>', '\n')
-            text = re.sub(r'</div>', '', text)
-            text = re.sub(r'<div .*>', '', text)
-            return text
+            return self.__remove_section_html_tag(patent_range_html)
         return None
 
     def get_name(self):

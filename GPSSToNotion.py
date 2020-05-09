@@ -83,17 +83,11 @@ class NotionPatent:
         self.page.children.add_new(CalloutBlock, title=self.patent.get_summary(), icon='\N{pushpin}')
 
     def create_patent_detail(self):
-        toggle = None
-        patent_detail_list = self.patent.get_patent_detail()
+        patent_detail_text = self.patent.get_patent_detail_text()
 
-        if patent_detail_list:
-            detail = [line.strip(' \t\n\r') for line in patent_detail_list.split("\n") if line != '']
-
-            for line in detail:
-                if "【" in line:
-                    toggle = self.page.children.add_new(ToggleBlock, title=line)
-                else:
-                    toggle.children.add_new(ToggleBlock, title=line)
+        if patent_detail_text:
+            patent_detail_section = self.page.children.add_new(ToggleBlock, title="詳細說明")
+            patent_detail_section.children.add_new(TextBlock, title=patent_detail_text)
         else:
             print("No patent detail")
 
