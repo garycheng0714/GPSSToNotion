@@ -80,8 +80,12 @@ class NotionPatent:
     def create_summary_block(self):
         # How to use string literal to create emoji
         # https://stackoverflow.com/a/52953582
-        self.page.children.add_new(HeaderBlock, title="摘要")
-        self.page.children.add_new(CalloutBlock, title=self.patent.get_summary(), icon='\N{pushpin}')
+        summary = self.patent.get_summary()
+        if summary:
+            self.page.children.add_new(HeaderBlock, title="摘要")
+            self.page.children.add_new(CalloutBlock, title=summary, icon='\N{pushpin}')
+        else:
+            print("No summary")
 
     def create_patent_detail(self):
         patent_detail_text = self.patent.get_patent_detail_text()

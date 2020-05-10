@@ -156,7 +156,10 @@ class Patent:
 
     def get_summary(self):
         soup = BeautifulSoup(self.__new_version_html, 'html.parser')
-        return soup.find('div', {'class': 'divsum_AB'}).text
+        summary_tag = soup.find('div', {'class': 'divsum_AB'})
+        if summary_tag is not None:
+            return summary_tag.text
+        return None
 
 
 if __name__ == "__main__":
