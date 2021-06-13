@@ -3,6 +3,19 @@ Get patent info from GPSS then write date into Notion
 
 # [How to get Notion v2 token](https://www.redgregory.com/notion/2020/6/15/9zuzav95gwzwewdu1dspweqbv481s5)
 
+# How to run
+
+1. Set token_v2 in notionPatent.py
+2. Set the notion url that you want to edit in notionPatent.py line 22, like [this url]((https://www.notion.so/6356b712fd1d4ccfa9d1aee08a097805?v=3ff6f5fef40c411eaedb4fd4d8956ff1))
+
+```python
+$ python GPSSToNotion.py -n US20200120829A1
+
+or
+
+$ python GPSSToNotion.py -f list_of_patent_numbers.excel
+```
+
 # Python Package
 * [pipenv](https://medium.com/@chihsuan/pipenv-%E6%9B%B4%E7%B0%A1%E5%96%AE-%E6%9B%B4%E5%BF%AB%E9%80%9F%E7%9A%84-python-%E5%A5%97%E4%BB%B6%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7-135a47e504f4)
 * [notion](https://pypi.org/project/notion/)
